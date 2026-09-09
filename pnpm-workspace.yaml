@@ -1,0 +1,5 @@
+# Allow install scripts only for deps that need a native binary.
+allowBuilds:
+  esbuild: true
+onlyBuiltDependencies:
+  - esbuild
