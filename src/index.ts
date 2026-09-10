@@ -8,5 +8,6 @@ export type {
   BpiV2Config,
   ChartParamsV2,
   PlayedScoreV2,
+  TotalChartV2,
   RankCurvePoint,
 } from "./types";

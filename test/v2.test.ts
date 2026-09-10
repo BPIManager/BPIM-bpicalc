@@ -80,11 +80,49 @@ describe("BpiV2.player(scores)", () => {
 
   it("totalBpi returns a finite number in a sane range", () => {
     const played = [{ chart, exScore: 2990 }];
-    const unplayed = Array.from({ length: 20 }, () => ({ ...chart }));
-    const t = v2.player(played).totalBpi(unplayed)!;
+    const scoped = [
+      { chart, exScore: 2990 },
+      ...Array.from({ length: 20 }, () => ({ chart })),
+    ];
+    const t = v2.player(played).totalBpi(scoped)!;
     expect(Number.isFinite(t)).toBe(true);
     expect(t).toBeGreaterThanOrEqual(-15);
     expect(t).toBeLessThanOrEqual(100);
+  });
+
+  it("totalBpi uses measured BPI where an exScore is given", () => {
+    // Every scoped chart carries a score -> the aggregate is a pure function of
+    // the per-chart BPIs, independent of latent skill.
+    const scoped = [2990, 2900, 2800].map((exScore) => ({ chart, exScore }));
+    const p = v2.player([{ chart, exScore: 2990 }]);
+    const bpis = scoped
+      .map(({ exScore }) => v2.chart(chart).bpi(exScore)!)
+      .sort((a, b) => b - a);
+    const c = 15;
+    const kPrime = Math.log(scoped.length) / Math.log((100 + c) / (50 + c));
+    const expected =
+      Math.round(
+        (Math.pow(
+          bpis.reduce((s, b) => s + Math.pow(b + c, kPrime) / scoped.length, 0),
+          1 / kPrime,
+        ) -
+          c) *
+          100,
+      ) / 100;
+    expect(p.totalBpi(scoped)).toBeCloseTo(expected, 10);
+  });
+
+  it("counts exScore-less entries as predicted (above the floor for a strong player)", () => {
+    const played = [{ chart, exScore: 2990 }];
+    const withUnplayed = v2.player(played).totalBpi([
+      { chart, exScore: 2990 },
+      { chart },
+      { chart },
+    ])!;
+    // Same denominator (3); the two unplayed entries contribute predicted BPIs
+    // rather than the -15 fill a bare measured list would get.
+    const playedOnly = v2.player(played).totalBpi([{ chart, exScore: 2990 }], 3)!;
+    expect(withUnplayed).toBeGreaterThan(playedOnly);
   });
 
   it("estimatedRank decreases as skill rises", () => {

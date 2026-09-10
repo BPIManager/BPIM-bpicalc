@@ -93,3 +93,10 @@ export interface PlayedScoreV2 {
   chart: ChartV2;
   exScore: number;
 }
+
+/** One entry of the scoped chart set passed to {@link PlayerBpiV2.totalBpi}. */
+export interface TotalChartV2 {
+  chart: ChartV2;
+  /** The player's EX score, or `null`/omitted when unplayed (BPI is predicted from latent skill). */
+  exScore?: number | null;
+}

@@ -78,7 +78,13 @@ const p = v2.player(played);
 p.latentSkill;                       // shrunk latent skill a  (null if no usable scores)
 p.info;                              // precision-unit information
 p.predictUnplayed(someChart);        // predicted BPI for a chart the player hasn't touched
-p.totalBpi(unplayedCharts);          // total BPI (measured + predicted, shift-method aggregate)
+
+// Total BPI: pass every chart in scope; entries with an exScore are measured,
+// the rest are predicted from latent skill. Shift-method aggregate.
+p.totalBpi(
+  allCharts.map((c) => ({ chart: c, exScore: scoreById.get(c.id) })),
+  allCharts.length,
+);
 p.estimatedRank();                   // estimated rank within the reference population
 ```
 
@@ -114,7 +120,7 @@ When the ALS parameters move into `songDef`, a `songDef` row *is* a `ChartV2` �
 | --- | --- |
 | `hasParams(row)` | `boolean` |
 | `chart(row)` | `ChartBpiV2` — `.bpi(exScore)`, `.scoreFor(targetBpi)`, `.params`, `.hasParams` |
-| `player(scores)` | `PlayerBpiV2` — `.latentSkill`, `.info`, `.predictUnplayed(row)`, `.totalBpi(unplayed, count?)`, `.estimatedRank()` |
+| `player(scores)` | `PlayerBpiV2` — `.latentSkill`, `.info`, `.predictUnplayed(row)`, `.totalBpi(charts, count?)`, `.estimatedRank()` |
 | `rankFromSingle(bpi)` / `rankFromSkill(a)` | estimated rank |
 
 `config` — required: `z0`, `zRef`, `z100Median`, `z100Iqr`, `residualRmse`, `coefMedian`,

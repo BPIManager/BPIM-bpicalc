@@ -5,6 +5,7 @@ import type {
   ChartParamsV2,
   ChartV2,
   PlayedScoreV2,
+  TotalChartV2,
 } from "./types";
 
 /** Defaults for {@link BpiV2Config}. Override any of these via the `BpiV2` constructor. */
@@ -134,7 +135,6 @@ export class PlayerBpiV2 {
   private readonly aShrunk: number;
   /** Precision-unit information `Σ sigma_j² / σε,j²`. Zero when there are no usable scores. */
   readonly info: number;
-  private readonly played: PlayedScoreV2[];
 
   constructor(
     private readonly model: BpiV2,
@@ -154,7 +154,6 @@ export class PlayerBpiV2 {
     }
     this.info = info;
     this.aShrunk = info > 0 ? num / (info + 1) : NaN;
-    this.played = scores;
   }
 
   /** Latent skill `a` (shrunk). `null` when there are no usable scores. */
@@ -176,23 +175,29 @@ export class PlayerBpiV2 {
   }
 
   /**
-   * Total BPI: measured single BPI for played charts, predicted for unplayed charts,
-   * aggregated with the shift method.
-   * @param unplayedCharts charts this player has not played (with V2 params)
-   * @param songCount total chart count; defaults to played + unplayed
+   * Total BPI over a scoped chart set: measured single BPI for entries that carry
+   * an `exScore`, predicted from latent skill for the rest, aggregated with the
+   * shift method.
+   *
+   * Pass every chart in scope (played and unplayed alike); `songCount` defaults to
+   * `charts.length`. Latent skill still comes from the full score list handed to
+   * `player(scores)`, so a score for a chart outside this set still informs the
+   * estimate without being counted in the aggregate.
+   *
+   * @param charts the scoped chart set, each optionally carrying the player's `exScore`
+   * @param songCount total chart count for the power-mean denominator
    */
-  totalBpi(unplayedCharts: ChartV2[], songCount?: number): number | null {
+  totalBpi(charts: TotalChartV2[], songCount?: number): number | null {
     const bpis: number[] = [];
-    for (const { chart, exScore } of this.played) {
-      const v = this.model.chart(chart).bpi(exScore);
-      if (v !== null) bpis.push(v);
-    }
-    for (const chart of unplayedCharts) {
-      const v = this.predictUnplayed(chart);
+    for (const { chart, exScore } of charts) {
+      const v =
+        exScore == null
+          ? this.predictUnplayed(chart)
+          : this.model.chart(chart).bpi(exScore);
       if (v !== null) bpis.push(v);
     }
     if (bpis.length === 0) return null;
-    const n = songCount ?? this.played.length + unplayedCharts.length;
+    const n = songCount ?? charts.length;
     bpis.sort((x, y) => y - x);
     return this.shiftedPowerMean(bpis, n);
   }

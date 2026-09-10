@@ -1,6 +1,6 @@
 {
   "name": "@bpim/bpicalc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "BPI (Beat Power Indicator) calculation, rank estimation and total BPI. Data-agnostic pure computation, zero runtime dependencies.",
   "keywords": [
     "bpi",
