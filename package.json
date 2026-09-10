@@ -11,11 +11,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BPIManager/bpicalc.git"
+    "url": "git+https://github.com/BPIManager/BPIM-bpicalc.git"
   },
-  "homepage": "https://github.com/BPIManager/bpicalc#readme",
+  "homepage": "https://github.com/BPIManager/BPIM-bpicalc#readme",
   "bugs": {
-    "url": "https://github.com/BPIManager/bpicalc/issues"
+    "url": "https://github.com/BPIManager/BPIM-bpicalc/issues"
   },
   "publishConfig": {
     "access": "public"
